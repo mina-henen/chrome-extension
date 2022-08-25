@@ -5,28 +5,33 @@ const API_KEY = "0984d952c862dd0cd879e254";
 const API_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest`;
 
 body.addEventListener("mouseup", async (e) => {
+    console.log("hello");
     let selection = window.getSelection()
     let selectedText = selection.toString()
     let {anchorNode, anchorOffset:start, focusOffset:end} = selection
     let {parentElement} = anchorNode
     let text = parentElement.textContent
+    console.log(selectedText);
     let newText = text
-    
-    if(isCurrency(selectedText) || selectedText.match(dollarRegex)) {
-        let amount, type
-        if(selectedText.match(dollarRegex)) {
-            amount = selectedText.slice(1, -1)
-            type = selectedText[0]
-        } else {
+    let syms =Object.keys(symbols)
 
-            selectedTextArray = selectedText.split(" ")
-            console.log(selectedTextArray);
-            amount = selectedTextArray[0]
-            type = selectedTextArray[1]
+    syms.forEach(sym => {
+        if(selectedText.includes(sym)) {
+        selectedText = reformat(selectedText)
+
         }
+    })
+    console.log(selectedText);
+    if(isCurrency(selectedText)) {
+        let amount, type
+        selectedTextArray = selectedText.split(" ")
+        console.log(selectedTextArray);
+        amount = selectedTextArray[0]
+        type = selectedTextArray[1]
 
         let newType = "EGP"
         let newAmount = await convert(amount, type, newType)
+        newAmount = newAmount.toFixed(2)
         console.log(newAmount);
         let newCurrency = [newAmount, newType]
         selectedText = newCurrency.join(" ")
@@ -38,9 +43,9 @@ body.addEventListener("mouseup", async (e) => {
 })
 
 let currenciesTypes = ["EUR", "EGP", "AUD", "KWD", "SAR"]
-let dollarRegex = new RegExp(`$\d+`)
+let dollarRegex = new RegExp(`$\\d+`)
 function isCurrency(input) {
-    let currenciesTypes = ["EUR", "EGP", "AUD", "KWD", "SAR"]
+    let currenciesTypes = ["EUR", "EGP", "AUD", "KWD", "SAR", "USD"]
     let foundMatch = false
     currenciesTypes.forEach(currencyType => {
         const currencyRegex = new RegExp(`\\d+ ${currencyType}`)
@@ -104,9 +109,17 @@ const symbols = {
     '₹': 'INR'
 }
 
-export default function sym2code(sym){
+function sym2code(sym){
     if(symbols[sym] == undefined)
         return ''
     else
         return symbols[sym]
+}
+
+function reformat(selectedText) {
+    amount = selectedText.slice(1, -1)
+    type = selectedText[0]
+    type = sym2code(type)
+
+    return amount + " " + type
 }
